@@ -9,6 +9,7 @@ import (
 
 var tags []string
 var labels map[string]string
+const ecsVersion = "1.5.0"
 
 func init() {
 	tagsFromEnv, exists := os.LookupEnv("HABERDASHER_TAGS")
@@ -36,6 +37,7 @@ type Emitter interface {
 
 // A Message is a structured log message
 type Message struct {
+	ECSVersion string `json:"ecs.version"`
 	Timestamp time.Time `json:"@timestamp"`
 	Labels map[string]string `json:"labels"`
 	Tags []string `json:"tags"`
@@ -53,7 +55,7 @@ func Register(emitterType string, emitter Emitter) {
 // Emit is launched as a goroutine for individual log lines to be sent
 // concurrently.
 func Emit(emitter Emitter, logMessage string) {
-	m := Message{time.Now(), labels, tags, logMessage}
+	m := Message{ecsVersion, time.Now(), labels, tags, logMessage}
 	jsonBytes, _ := json.Marshal(m)
 	if err := emitter.HandleLogMessage(jsonBytes); err != nil {
 		log.Println("Error emitting message:", jsonBytes, err)
