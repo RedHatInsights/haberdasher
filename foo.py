@@ -10,4 +10,5 @@ while 1:
         sys.stderr.write(json.dumps(dict(i=i))+'\n')
     else:
         sys.stderr.write(f'{i}\n')
+    sys.stderr.flush()
     i += 1

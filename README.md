@@ -8,7 +8,7 @@ contains standard PID1 goodies for healthier container execution.
 
 The `foo.py` program simply ticks off integers as log messages every 2 seconds.
 
-    $ PYTHONUNBUFFERED=1 ./haberdasher python3 foo.py
+    $ ./haberdasher python3 foo.py
     2020/09/14 16:03:00 Initializing haberdasher.
     2020/09/14 16:03:00 Configured emitter: stdout
     Python starting
@@ -27,7 +27,7 @@ message.
 If Haberdasher receives a structured log message from its wrapped process, it
 leaves it alone and retransmits it unmodified.
 
-    $ PYTHONUNBUFFERED=1 ./haberdasher python3 foo.py --json
+    $ ./haberdasher python3 foo.py --json
     2020/09/14 16:05:02 Initializing haberdasher.
     2020/09/14 16:05:02 Configured emitter: stdout
     Python starting
