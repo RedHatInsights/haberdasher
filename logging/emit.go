@@ -7,9 +7,9 @@ import (
 	"os"
 )
 
-var tags []string
-var labels map[string]string
-const ecsVersion = "1.5.0"
+var defaultTags []string
+var defaultLabels map[string]string
+const defaultEcsVersion = "1.5.0"
 
 func init() {
 	tagsFromEnv, exists := os.LookupEnv("HABERDASHER_TAGS")
@@ -20,11 +20,11 @@ func init() {
 	if !exists {
 		labelsFromEnv = "{}"
 	}
-	err := json.Unmarshal([]byte(tagsFromEnv), &tags)
+	err := json.Unmarshal([]byte(tagsFromEnv), &defaultTags)
 	if err != nil {
 		log.Fatal("HABERDASHER_TAGS must be a JSON array of strings")
 	}
-	err = json.Unmarshal([]byte(labelsFromEnv), &labels)
+	err = json.Unmarshal([]byte(labelsFromEnv), &defaultLabels)
 	if err != nil {
 		log.Fatal("HABERDASHER_LABELS must be a JSON object of strings")
 	}
@@ -55,9 +55,14 @@ func Register(emitterType string, emitter Emitter) {
 // Emit is launched as a goroutine for individual log lines to be sent
 // concurrently.
 func Emit(emitter Emitter, logMessage string) {
-	m := Message{ecsVersion, time.Now(), labels, tags, logMessage}
-	jsonBytes, _ := json.Marshal(m)
-	if err := emitter.HandleLogMessage(jsonBytes); err != nil {
-		log.Println("Error emitting message:", jsonBytes, err)
+	// If the emitted message is JSON, pass it along unmodified
+	var decodedJSON map[string]interface{}
+	messageToEmit := []byte(logMessage)
+	if err := json.Unmarshal(messageToEmit, &decodedJSON); err != nil {
+		m := Message{defaultEcsVersion, time.Now(), defaultLabels, defaultTags, logMessage}
+		messageToEmit, _ = json.Marshal(m)
+	}
+	if err := emitter.HandleLogMessage(messageToEmit); err != nil {
+		log.Println("Error emitting message:", messageToEmit, err)
 	}
 }
