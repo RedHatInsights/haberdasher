@@ -2,6 +2,7 @@ import json
 import sys
 import time
 
+print('Python starting')
 i = 0
 while 1:
     time.sleep(2)

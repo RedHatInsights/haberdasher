@@ -25,6 +25,8 @@ func main() {
 	emitter := logging.Emitters[emitterName]
 
 	subcmd := exec.Command(subcmdBin, subcmdArgs...)
+	// pass through stdout
+	subcmd.Stdout = os.Stdout
 	subcmdErr, err := subcmd.StderrPipe()
 	if err != nil {
 		log.Fatal(err)
