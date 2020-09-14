@@ -1,4 +1,6 @@
-github.com/bcicen/jstream v1.0.1 h1:BXY7Cu4rdmc0rhyTVyT3UkxAiX3bnLpKLas9btbH5ck=
-github.com/bcicen/jstream v1.0.1/go.mod h1:9ielPxqFry7Y4Tg3j4BfjPocfJ3TbsRtXOAYXYmRuAQ=
+github.com/confluentinc/confluent-kafka-go v1.4.2 h1:13EK9RTujF7lVkvHQ5Hbu6bM+Yfrq8L0MkJNnjHSd4Q=
+github.com/confluentinc/confluent-kafka-go v1.4.2/go.mod h1:u2zNLny2xq+5rWeTQjFHbDzzNuba4P1vo31r9r4uAdg=
 github.com/ramr/go-reaper v0.2.0 h1:hhGZ1SRZ9fJfSEf9e14hRB4O0MafRwHK5O33j70qTNI=
 github.com/ramr/go-reaper v0.2.0/go.mod h1:DFg2AhfQCvkJwRKUfsycOSSZELGBA9gt46ne3SOecJM=
+gopkg.in/confluentinc/confluent-kafka-go.v1 v1.4.2 h1:JabkIV98VYFqYKHHzXtgGMFuRgFBNTNzBytbGByzrJI=
+gopkg.in/confluentinc/confluent-kafka-go.v1 v1.4.2/go.mod h1:ZdI3yfYmdNSLQPNCpO1y00EHyWaHG5EnQEyL/ntAegY=

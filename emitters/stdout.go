@@ -17,3 +17,7 @@ func (e stdoutEmitter) HandleLogMessage(jsonBytes []byte) (error) {
 	fmt.Println(string(jsonBytes))
 	return nil
 }
+
+func (e stdoutEmitter) Cleanup() (error) {
+	return nil
+}
