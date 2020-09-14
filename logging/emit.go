@@ -11,6 +11,10 @@ var defaultTags []string
 var defaultLabels map[string]string
 const defaultEcsVersion = "1.5.0"
 
+// If the wrapped application emits plain text messages, we should wrap them
+// ourselves in an ECS compatible envelope. The environment variables
+// HABERDASHER_TAGS and HABERDASHER_LABELS contain serialized JSON values for
+// the tags and labels to go in such messages. They are optional.
 func init() {
 	tagsFromEnv, exists := os.LookupEnv("HABERDASHER_TAGS")
 	if !exists {
@@ -37,7 +41,8 @@ type Emitter interface {
 	Cleanup() (error)
 }
 
-// A Message is a structured log message
+// A Message is a structured log message - only used if the log message we
+// consume from the subprocess is not already structured
 type Message struct {
 	ECSVersion string `json:"ecs.version"`
 	Timestamp time.Time `json:"@timestamp"`
@@ -55,7 +60,9 @@ func Register(emitterType string, emitter Emitter) {
 }
 
 // Emit is launched as a goroutine for individual log lines to be sent
-// concurrently.
+// concurrently. When it receives a line, it tries to decode it from JSON.
+// If that succeeds, meaning it's already a structured object, we pass it along
+// unmodified. If not, we wrap it in a basic ECS structure.
 func Emit(emitter Emitter, logMessage string) {
 	// If the emitted message is JSON, pass it along unmodified
 	var decodedJSON map[string]interface{}

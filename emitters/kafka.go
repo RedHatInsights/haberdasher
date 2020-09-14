@@ -17,6 +17,8 @@ func init() {
 	logging.Register("kafka", emitter)
 }
 
+// If the Kafka emitter is activated, create a new Producer and spawn a
+// goroutine to note any errors.
 func (e kafkaEmitter) Setup() {
 	var err error
 	bootstrapServers, exists := os.LookupEnv("HABERDASHER_KAFKA_BOOTSTRAP")
@@ -47,6 +49,7 @@ func (e kafkaEmitter) Setup() {
 }
 
 // HandleLogMessage ships the log message to Kafka
+// TODO: Do we need to re-establish a connection if the Producer connection closes?
 func (e kafkaEmitter) HandleLogMessage(jsonBytes []byte) (error) {
 	return producer.Produce(&kafka.Message{
 		TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
@@ -54,6 +57,9 @@ func (e kafkaEmitter) HandleLogMessage(jsonBytes []byte) (error) {
 	}, nil)
 }
 
+// We don't want any buffered messages to get lost if we shut down, so we wait
+// to allow it to exit. The wait is 9 seconds, expecting that the container
+// orchestrator will wait 10 seconds for shutdown.
 func (e kafkaEmitter) Cleanup() (error) {
 	if messagesRemaining := producer.Flush(9*1000); messagesRemaining > 0 {
 		return fmt.Errorf("Failed to flush completely. %d messages still in buffer", messagesRemaining)
