@@ -12,7 +12,8 @@ func init() {
 	logging.Register("stdout", emitter)
 }
 
-// HandleLogMessage prints the json body to stdout
+func (e stdoutEmitter) Setup() {}
+
 func (e stdoutEmitter) HandleLogMessage(jsonBytes []byte) (error) {
 	fmt.Println(string(jsonBytes))
 	return nil

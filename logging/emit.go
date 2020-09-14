@@ -32,6 +32,7 @@ func init() {
 
 // An Emitter defines how to ship a log message to a log service.
 type Emitter interface {
+	Setup()
 	HandleLogMessage(jsonBytes []byte) (error)
 	Cleanup() (error)
 }

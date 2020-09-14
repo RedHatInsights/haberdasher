@@ -13,6 +13,11 @@ var topic string
 type kafkaEmitter struct{}
 
 func init() {
+	var emitter kafkaEmitter
+	logging.Register("kafka", emitter)
+}
+
+func (e kafkaEmitter) Setup() {
 	var err error
 	bootstrapServers, exists := os.LookupEnv("HABERDASHER_KAFKA_BOOTSTRAP")
 	if !exists {
@@ -39,9 +44,6 @@ func init() {
 			}
 		}
 	}()
-
-	var emitter kafkaEmitter
-	logging.Register("kafka", emitter)
 }
 
 // HandleLogMessage ships the log message to Kafka

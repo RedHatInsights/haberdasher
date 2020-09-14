@@ -53,9 +53,10 @@ func main() {
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
 	go signalHandler(&subcmdPid, emitter, signalChan)
 
+	emitter.Setup()
+
 	subcmdBin := os.Args[1]
 	subcmdArgs := os.Args[2:len(os.Args)]
-
 
 	subcmd := exec.Command(subcmdBin, subcmdArgs...)
 	// pass through stdout
