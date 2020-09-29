@@ -46,7 +46,7 @@ func main() {
 	// Generate the emitter first so we can hand it over to the signal handler
 	emitterName, exists := os.LookupEnv("HABERDASHER_EMITTER")
 	if !exists {
-		emitterName = "stdout"
+		emitterName = "stderr"
 	}
 	log.Println("Configured emitter:", emitterName)
 	emitter := logging.Emitters[emitterName]

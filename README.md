@@ -10,7 +10,7 @@ The `foo.py` program simply ticks off integers as log messages every 2 seconds.
 
     $ ./haberdasher python3 foo.py
     2020/09/14 16:03:00 Initializing haberdasher.
-    2020/09/14 16:03:00 Configured emitter: stdout
+    2020/09/14 16:03:00 Configured emitter: stderr
     Python starting
     {"ecs.version":"1.5.0","@timestamp":"2020-09-14T16:03:02.556065987-04:00","labels":{},"tags":[],"message":"0"}
     {"ecs.version":"1.5.0","@timestamp":"2020-09-14T16:03:04.558082983-04:00","labels":{},"tags":[],"message":"1"}
@@ -19,7 +19,7 @@ The `foo.py` program simply ticks off integers as log messages every 2 seconds.
     2020/09/14 16:03:07 Sending signal to 415770
     2020/09/14 16:03:07 Trigering emitter shutdown
 
-You can see that using the stdout emitter, it simply prints the received messages.
+You can see that using the stderr emitter, it simply prints the received messages.
 Since the output of `foo.py` was unstructured, each log line that Haberdasher
 received is wrapped in a basic [Elastic Common Schema](https://www.elastic.co/guide/en/ecs/current/index.html)
 message.
@@ -29,7 +29,7 @@ leaves it alone and retransmits it unmodified.
 
     $ ./haberdasher python3 foo.py --json
     2020/09/14 16:05:02 Initializing haberdasher.
-    2020/09/14 16:05:02 Configured emitter: stdout
+    2020/09/14 16:05:02 Configured emitter: stderr
     Python starting
     {"i": 0}
     {"i": 1}
@@ -42,7 +42,7 @@ leaves it alone and retransmits it unmodified.
 
 Haberdasher is configured entirely from environment variables.
 
-* `HABERDASHER_EMITTER` - configures the emitter to use. `stdout` is default,
+* `HABERDASHER_EMITTER` - configures the emitter to use. `stderr` is default,
   but `kafka` is also supported.
 * `HABERDASHER_TAGS` - for unstructured log lines received, Haberdasher can add
   ECS tags to the wrapped messages. This value should be a serialized JSON list.

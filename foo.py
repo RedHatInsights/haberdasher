@@ -2,6 +2,7 @@ import json
 import sys
 import time
 
+# This is useful for testing stdout vs. stderr
 print('Python starting')
 i = 0
 while 1:
