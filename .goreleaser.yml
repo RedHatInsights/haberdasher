@@ -29,5 +29,3 @@ release:
     owner: RedHatInsights
     name: haberdasher
   prerelease: auto
-
-
