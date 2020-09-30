@@ -61,7 +61,9 @@ to your Dockerfile.
 
 1. In a `RUN` stanza, include:
 
-    curl -L -o /usr/bin/haberdasher https://github.com/RedHatInsights/haberdasher/releases/latest/download/haberdasher_$(uname -s)_$(uname -m) && \
+    curl -L -o /usr/bin/haberdasher https://github.com/RedHatInsights/haberdasher/releases/latest/download/haberdasher_linux_amd64 && \
     chmod 755 /usr/bin/haberdasher
 
-2. Your `ENTRYPOINT` command should be: `/usr/bin/haberdasher`
+2. Your `ENTRYPOINT` command should be: `["/usr/bin/haberdasher"]`
+
+And that's it! Rebuild and you're up and running.
