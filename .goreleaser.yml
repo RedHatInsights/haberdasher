@@ -13,7 +13,7 @@ builds:
       - amd64
 archives:
   - format: binary
-
+    name_template: "{{.Binary}}_{{.Os}}_{{.Arch}}"
 checksum:
   name_template: 'checksums.txt'
 snapshot:
@@ -29,6 +29,5 @@ release:
     owner: RedHatInsights
     name: haberdasher
   prerelease: auto
-  name_template: "{{.ProjectName}}-{{.Os}}-{{.Arch}}"
 
 
