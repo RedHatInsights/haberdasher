@@ -2,6 +2,8 @@
 
 set -exv
 
+test "$(git name-rev --name-only --tags HEAD)" == "undefined" && (echo "This is an untagged commit so no release can be made"; exit 0)
+
 GORELEASER_URL="https://github.com/goreleaser/goreleaser/releases"
 
 test -z "$TMPDIR" && TMPDIR="$(mktemp -d)"
