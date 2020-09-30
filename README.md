@@ -54,3 +54,14 @@ Haberdasher is configured entirely from environment variables.
 * `HABERDASHER_KAFKA_TOPIC` - if the `kafka` emitter is used, this is required
   and names the Kafka topic log messages should be written to
 
+## Adding it to your Dockerfile
+
+To use Haberdasher in a container, you only have to make two small modifications
+to your Dockerfile.
+
+1. In a `RUN` stanza, include:
+
+    curl -L -o /usr/bin/haberdasher https://github.com/RedHatInsights/haberdasher/releases/latest/download/haberdasher_$(uname -s)_$(uname -m) && \
+    chmod 755 /usr/bin/haberdasher
+
+2. Your `ENTRYPOINT` command should be: `/usr/bin/haberdasher`
