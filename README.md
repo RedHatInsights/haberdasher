@@ -49,6 +49,10 @@ Haberdasher is configured entirely from environment variables.
 * `HABERDASHER_LABELS` - for unstructured log lines received, Haberdasher can
   add ECS labels to the wrapped messages. This value should be a serialized
   JSON object whose values are all strings.
+* `HABERDASHER_STDERR_PRETTY` - if the `stderr` emitter is used, setting this to
+  a non-empty string will result in the JSON being prettified before printing to
+  stderr. This is useful in developer environments to make the messages easier
+  to read.
 * `HABERDASHER_KAFKA_BOOTSTRAP` - if the `kafka` emitter is used, this is
   required and points to the bootstrap listener for your Kafka cluster
 * `HABERDASHER_KAFKA_TOPIC` - if the `kafka` emitter is used, this is required
