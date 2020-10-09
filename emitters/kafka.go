@@ -1,6 +1,7 @@
 package emitters
 
 import (
+	"encoding/json"
 	"log"
 	"os"
 	"strings"
@@ -40,13 +41,16 @@ func (e kafkaEmitter) Setup() {
 
 // HandleLogMessage ships the log message to Kafka
 // TODO: Do we need to re-establish a connection if the Producer connection closes?
-func (e kafkaEmitter) HandleLogMessage(jsonBytes []byte) (error) {
-	err := producer.WriteMessages(
-		context.Background(), 
-		kafka.Message{
-			 Value: jsonBytes,
-		},
-	)
+func (e kafkaEmitter) HandleLogMessage(jsonSerializeable interface{}) (error) {
+	jsonBytes, err := json.Marshal(jsonSerializeable)
+	if err != nil {
+		err = producer.WriteMessages(
+			context.Background(), 
+			kafka.Message{
+				Value: jsonBytes,
+			},
+		)
+	}
 	return err
 }
 

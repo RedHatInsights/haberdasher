@@ -37,7 +37,7 @@ func init() {
 // An Emitter defines how to ship a log message to a log service.
 type Emitter interface {
 	Setup()
-	HandleLogMessage(jsonBytes []byte) (error)
+	HandleLogMessage(jsonSerializeable interface{}) (error)
 	Cleanup() (error)
 }
 
@@ -66,12 +66,14 @@ func Register(emitterType string, emitter Emitter) {
 func Emit(emitter Emitter, logMessage string) {
 	// If the emitted message is JSON, pass it along unmodified
 	var decodedJSON map[string]interface{}
-	messageToEmit := []byte(logMessage)
-	if err := json.Unmarshal(messageToEmit, &decodedJSON); err != nil {
+	if err := json.Unmarshal([]byte(logMessage), &decodedJSON); err != nil {
 		m := Message{defaultEcsVersion, time.Now(), defaultLabels, defaultTags, logMessage}
-		messageToEmit, _ = json.Marshal(m)
-	}
-	if err := emitter.HandleLogMessage(messageToEmit); err != nil {
-		log.Println("Error emitting message:", messageToEmit, err)
+		if err := emitter.HandleLogMessage(m); err != nil {
+			log.Println("Error emitting message:", logMessage, err)
+		}
+	} else {
+		if err := emitter.HandleLogMessage(decodedJSON); err != nil {
+			log.Println("Error emitting message:", logMessage, err)
+		}
 	}
 }
