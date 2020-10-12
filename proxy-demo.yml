@@ -1,0 +1,150 @@
+apiVersion: v1
+kind: Template
+labels:
+  app: haberdasher
+  template: haberdasher-proxy-test
+metadata:
+  annotations:
+  name: haberdasher-proxy-test
+objects:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: haberdasher-one
+    annotations:
+      service.beta.openshift.io/serving-cert-secret-name: haberdasher-one
+  spec:
+    selector:
+      app: haberdasher-one
+    ports:
+    - name: haberdasher-one-http
+      port: 8080
+      targetPort: 8080
+    - name: haberdasher-one-https
+      port: 443
+      targetPort: 8443
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: haberdasher-two
+    annotations:
+      service.beta.openshift.io/serving-cert-secret-name: haberdasher-two
+  spec:
+    selector:
+      app: haberdasher-two
+    ports:
+    - name: haberdasher-two-http
+      port: 8080
+      targetPort: 8080
+    - name: haberdasher-two-https
+      port: 443
+      targetPort: 8443
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: haberdasher-ca
+    annotations:
+      service.beta.openshift.io/inject-cabundle: "true"
+  data:
+    service-ca.crt: ""
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: haberdasher-one
+  spec:
+    selector:
+      matchLabels:
+        app: haberdasher-one
+    template:
+      metadata:
+        labels:
+          app: haberdasher-one
+      spec:
+        containers:
+        - name: haberdasher-one
+          image: quay.io/j00bar/haberdasher:proxy-support
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 8443
+          - containerPort: 8080
+          env:
+            - name: HABERDASHER_REVPROXY
+              value: "1"
+            - name: HABERDASHER_FWDPROXY
+              value: "1"
+            - name: HABERDASHER_TLS_CERT
+              value: /etc/openshift-ssl/tls.crt
+            - name: HABERDASHER_TLS_KEY
+              value: /etc/openshift-ssl/tls.key
+            - name: HABERDASHER_TLS_CACERT
+              value: /etc/openshift-ssl/ca/service-ca.crt
+            - name: HABERDASHER_FWDPROXY_PORT
+              value: "8081"
+            - name: HABERDASHER_REVPROXY_TO
+              value: "8080"
+          volumeMounts:
+          - mountPath: /etc/openshift-ssl
+            name: openshift-ssl
+            readOnly: true
+          - mountPath: /etc/openshift-ssl/ca
+            name: openshift-ssl-ca
+            readOnly: true
+        volumes:
+        - name: openshift-ssl
+          secret:
+            secretName: haberdasher-one
+        - name: openshift-ssl-ca
+          configMap:
+            name: haberdasher-ca
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: haberdasher-two
+  spec:
+    selector:
+      matchLabels:
+        app: haberdasher-two
+    template:
+      metadata:
+        labels:
+          app: haberdasher-two
+      spec:
+        containers:
+        - name: haberdasher-two
+          image: quay.io/j00bar/haberdasher:proxy-support
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 8443
+          - containerPort: 8080
+          env:
+            - name: HABERDASHER_REVPROXY
+              value: "1"
+            - name: HABERDASHER_FWDPROXY
+              value: "1"
+            - name: HABERDASHER_TLS_CERT
+              value: /etc/openshift-ssl/tls.crt
+            - name: HABERDASHER_TLS_KEY
+              value: /etc/openshift-ssl/tls.key
+            - name: HABERDASHER_TLS_CACERT
+              value: /etc/openshift-ssl/ca/service-ca.crt
+            - name: HABERDASHER_FWDPROXY_PORT
+              value: "8081"
+            - name: HABERDASHER_REVPROXY_TO
+              value: "8080"
+          volumeMounts:
+          - mountPath: /etc/openshift-ssl
+            name: openshift-ssl
+            readOnly: true
+          - mountPath: /etc/openshift-ssl/ca
+            name: openshift-ssl-ca
+            readOnly: true
+        volumes:
+        - name: openshift-ssl
+          secret:
+            secretName: haberdasher-two
+        - name: openshift-ssl-ca
+          configMap:
+            name: haberdasher-ca
+
+
+
