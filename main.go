@@ -81,13 +81,23 @@ func main() {
 	}
 	subcmdPid = subcmd.Process.Pid
 
-	config, err := proxy.ReverseEnabled()
+	rpConfig, err := proxy.ReverseEnabled()
 	if err != nil {
 		log.Fatal(err)
 	}
-	if config != nil {
+	if rpConfig != nil {
 		go func() {
-			proxy.ReverseStart(config)
+			proxy.ReverseStart(rpConfig)
+		}()
+	}
+
+	fpConfig, err := proxy.ForwardEnabled()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if fpConfig != nil {
+		go func() {
+			proxy.ForwardStart(fpConfig)
 		}()
 	}
 
