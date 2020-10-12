@@ -56,11 +56,12 @@ func ForwardEnabled() (*ForwardConfig, error) {
 
 func forwardHandler(client *http.Client, writer http.ResponseWriter, req *http.Request) {
 	url := req.URL
+	// TODO: We need to intelligently copy HTTP headers onto the subrequest
 	proxyReq, err := http.NewRequest(req.Method, url.String(), req.Body)
 	// Do an SRV lookup on the service to see if it's secure or not
 	cname, addrs, err := net.LookupSRV("", "", url.Hostname())
 	if (err == nil && strings.HasSuffix(cname, ".svc.cluster.local.") && url.Scheme == "http") {
-		// Upgrade this connection to HTTPS
+		// If the service listens on 443, upgrade this connection to HTTPS
 		hasHTTPSPort := false
 		for _, addr := range addrs {
 			if addr.Port == 443 {
@@ -102,7 +103,7 @@ func forwardHandler(client *http.Client, writer http.ResponseWriter, req *http.R
 
 // ForwardStart runs the forward proxy server
 func ForwardStart(config *ForwardConfig) {
-	// Set up client for mTLS
+	// Set up client for TLS & mTLS
 	caCert, err := ioutil.ReadFile(config.CaCertPath)
 	if err != nil {
 		log.Fatal(err)

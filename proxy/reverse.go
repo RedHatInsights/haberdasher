@@ -90,6 +90,7 @@ func ReverseStart(config *ReverseConfig) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(writer http.ResponseWriter, req *http.Request) {
 		writerHeader := writer.Header()
+		// TODO: This should be a processor
 		for _, peerCert := range req.TLS.PeerCertificates {
 			writerHeader.Add("X-Haberdasher-Auth", peerCert.Subject.String())
 		}
@@ -103,6 +104,7 @@ func ReverseStart(config *ReverseConfig) {
 	})
 
 	server := &http.Server{
+		// TODO: The 8443 ought to be configurable
 		Addr: ":8443",
 		Handler: mux,
 		TLSConfig: tlsConfig,
