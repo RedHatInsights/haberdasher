@@ -10,6 +10,7 @@ import (
 	reaper "github.com/ramr/go-reaper"
 	"github.com/RedHatInsights/haberdasher/logging"
 	_ "github.com/RedHatInsights/haberdasher/emitters"
+	"github.com/RedHatInsights/haberdasher/proxy"
 )
 
 // If running as PID1, we need to actively catch and handle any shutdown signals
@@ -79,6 +80,28 @@ func main() {
 		log.Fatal(err)
 	}
 	subcmdPid = subcmd.Process.Pid
+
+	// Start the reverse proxy, if configured
+	rpConfig, err := proxy.ReverseEnabled()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if rpConfig != nil {
+		go func() {
+			proxy.ReverseStart(rpConfig)
+		}()
+	}
+
+	// Start the forward proxy, if configured
+	fpConfig, err := proxy.ForwardEnabled()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if fpConfig != nil {
+		go func() {
+			proxy.ForwardStart(fpConfig)
+		}()
+	}
 
 	for scanner.Scan() {
 		go func() {
