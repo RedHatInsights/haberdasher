@@ -27,7 +27,6 @@ version = ""
 # The full version, including alpha/beta/rc tags
 release = "0.0.1"
 
-
 # -- General configuration ---------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -70,7 +69,7 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path .
-exclude_patterns = ["**/*.migrations.rst"]
+exclude_patterns = []
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
@@ -127,29 +126,6 @@ latex_elements = {
     #
     # 'figure_align': 'htbp',
 }
-
-# Grouping the document tree into LaTeX files. List of tuples
-# (source start file, target name, title,
-#  author, documentclass [howto, manual, or own class]).
-latex_documents = [(master_doc, "RBAC.tex", "RBAC Documentation", "Red Hat, Inc.", "manual")]
-
-
-# -- Options for manual page output ------------------------------------------
-
-# One entry per manual page. List of tuples
-# (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "RBAC", "RBAC Documentation", [author], 1)]
-
-
-# -- Options for Texinfo output ----------------------------------------------
-
-# Grouping the document tree into Texinfo files. List of tuples
-# (source start file, target name, title, author,
-#  dir menu entry, description, category)
-texinfo_documents = [
-    (master_doc, "RBAC", "RBAC Documentation", author, "RBAC", "Role Based Access Control", "Miscellaneous")
-]
-
 
 # -- Extension configuration -------------------------------------------------
 
