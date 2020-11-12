@@ -1,17 +1,19 @@
 package emitters
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"os"
 	"strings"
-	"context"
-	"github.com/segmentio/kafka-go"
+
 	"github.com/RedHatInsights/haberdasher/logging"
+	"github.com/segmentio/kafka-go"
 )
 
 var producer *kafka.Writer
 var topic string
+
 type kafkaEmitter struct{}
 
 func init() {
@@ -33,19 +35,21 @@ func (e kafkaEmitter) Setup() {
 	}
 
 	producer = kafka.NewWriter(kafka.WriterConfig{
-		Brokers: strings.Split(bootstrapServers, ","),
-		Topic: topic,
+		Brokers:  strings.Split(bootstrapServers, ","),
+		Topic:    topic,
 		Balancer: &kafka.LeastBytes{},
 	})
 }
 
 // HandleLogMessage ships the log message to Kafka
-// TODO: Do we need to re-establish a connection if the Producer connection closes?
-func (e kafkaEmitter) HandleLogMessage(jsonSerializeable interface{}) (error) {
+func (e kafkaEmitter) HandleLogMessage(jsonSerializeable interface{}) error {
 	jsonBytes, err := json.Marshal(jsonSerializeable)
 	if err != nil {
+		// The calling function prints out the actual failed message, just need to pass here
+		log.Println("Error in message formatting. Skipping.")
+	} else {
 		err = producer.WriteMessages(
-			context.Background(), 
+			context.Background(),
 			kafka.Message{
 				Value: jsonBytes,
 			},
@@ -56,6 +60,6 @@ func (e kafkaEmitter) HandleLogMessage(jsonSerializeable interface{}) (error) {
 
 // We don't want any buffered messages to get lost if we shut down, so we wait
 // to allow it to exit.
-func (e kafkaEmitter) Cleanup() (error) {
+func (e kafkaEmitter) Cleanup() error {
 	return producer.Close()
 }

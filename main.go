@@ -1,15 +1,16 @@
 package main
 
 import (
+	"bufio"
 	"log"
 	"os"
 	"os/exec"
-	"bufio"
 	"os/signal"
 	"syscall"
-	reaper "github.com/ramr/go-reaper"
-	"github.com/RedHatInsights/haberdasher/logging"
+
 	_ "github.com/RedHatInsights/haberdasher/emitters"
+	"github.com/RedHatInsights/haberdasher/logging"
+	reaper "github.com/ramr/go-reaper"
 )
 
 // If running as PID1, we need to actively catch and handle any shutdown signals
@@ -83,6 +84,10 @@ func main() {
 	for scanner.Scan() {
 		go func() {
 			logging.Emit(emitter, scanner.Text())
+			// Still want to send logs to console with non-console emitters
+			if emitterName != "stderr" {
+				log.Println(scanner.Text())
+			}
 		}()
 	}
 }
