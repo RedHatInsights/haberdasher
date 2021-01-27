@@ -17,11 +17,11 @@ const defaultEcsVersion = "1.5.0"
 // the tags and labels to go in such messages. They are optional.
 func init() {
 	tagsFromEnv, exists := os.LookupEnv("HABERDASHER_TAGS")
-	if !exists {
+	if !exists || tagsFromEnv == "" {
 		tagsFromEnv = "[]"
 	}
 	labelsFromEnv, exists := os.LookupEnv("HABERDASHER_LABELS")
-	if !exists {
+	if !exists || labelsFromEnv == "" {
 		labelsFromEnv = "{}"
 	}
 	err := json.Unmarshal([]byte(tagsFromEnv), &defaultTags)
