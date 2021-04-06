@@ -6,12 +6,17 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"regexp"
 	"syscall"
 
 	_ "github.com/RedHatInsights/haberdasher/emitters"
 	"github.com/RedHatInsights/haberdasher/logging"
 	reaper "github.com/ramr/go-reaper"
 )
+
+var /* const */ contPattern = regexp.MustCompile(`\n\s`)
+var /* const */ linePattern = regexp.MustCompile(`\n\S`)
+var /* const */ cleanPattern = regexp.MustCompile(`\n$`)
 
 // If running as PID1, we need to actively catch and handle any shutdown signals
 // So with this handler, we pass the signal along to the subprocess we spawned
@@ -33,12 +38,52 @@ func signalHandler(pid *int, emitter logging.Emitter, signalChan chan os.Signal)
 		}
 		log.Println("Sending signal to", *pid)
 		syscall.Kill(*pid, signalToSendChild)
-		log.Println("Trigering emitter shutdown")
+		log.Println("Triggering emitter shutdown")
 		if err := emitter.Cleanup(); err != nil {
 			log.Println("Error cleaning up emitter:", err)
 		}
 		os.Exit(0)
 	}
+}
+
+func logSplit(data []byte, atEOF bool) (advance int, token []byte, err error) {
+	if atEOF && len(data) == 0 {
+		return 0, nil, nil
+	}
+
+	cont := contPattern.FindAllStringIndex(string(data), -1)
+	if cont != nil {
+		// We have a continued line
+		contInd := cont[0][0]
+		stop := linePattern.FindStringIndex(string(data[contInd:]))
+		if stop != nil {
+			stopInd := contInd + stop[0]
+			end := cleanPattern.FindStringIndex(string(data[stopInd:]))
+			if end != nil {
+				logInd := stopInd + end[1]
+				if logInd + 1 > len(data) {
+					return len(data), data, nil
+				}
+				tok := data[:logInd]
+				adv := logInd + 1
+				return adv, tok, nil
+			}
+		}
+		return 0, nil, nil
+	}
+
+	cleanLine := cleanPattern.FindStringIndex(string(data))
+	if cleanLine != nil {
+		// We have a full newline-terminated line.
+		cleanInd := cleanLine[0]
+		return cleanInd + 1, data[0:cleanInd], nil
+	}
+
+	if atEOF {
+		return len(data), data, nil
+	}
+
+	return 0, nil, nil
 }
 
 func main() {
@@ -75,6 +120,7 @@ func main() {
 		log.Fatal(err)
 	}
 	scanner := bufio.NewScanner(subcmdErr)
+	scanner.Split(logSplit)
 
 	if err := subcmd.Start(); err != nil {
 		log.Fatal(err)
@@ -82,12 +128,15 @@ func main() {
 	subcmdPid = subcmd.Process.Pid
 
 	for scanner.Scan() {
-		go func() {
-			logging.Emit(emitter, scanner.Text())
-			// Still want to send logs to console with non-console emitters
-			if emitterName != "stderr" {
-				log.Println(scanner.Text())
-			}
-		}()
+		msg := scanner.Bytes()
+		err := scanner.Err()
+		if err != nil {
+			log.Println(err)
+		}
+		// Still want to send logs to console with non-console emitters
+		if emitterName != "stderr" {
+			log.Println(string(msg))
+		}
+		logging.Emit(emitter, string(msg))
 	}
 }
