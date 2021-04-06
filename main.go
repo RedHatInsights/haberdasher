@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"bufio"
 	"log"
 	"os"
@@ -15,8 +16,7 @@ import (
 )
 
 var /* const */ contPattern = regexp.MustCompile(`\n\s`)
-var /* const */ linePattern = regexp.MustCompile(`\n\S`)
-var /* const */ cleanPattern = regexp.MustCompile(`\n$`)
+var /* const */ fullContPattern = regexp.MustCompile(`^\S(.*\n\s)+.*\n\S.*\n`)
 
 // If running as PID1, we need to actively catch and handle any shutdown signals
 // So with this handler, we pass the signal along to the subprocess we spawned
@@ -51,32 +51,25 @@ func logSplit(data []byte, atEOF bool) (advance int, token []byte, err error) {
 		return 0, nil, nil
 	}
 
-	cont := contPattern.FindAllStringIndex(string(data), -1)
+	cont := contPattern.Find(data)
 	if cont != nil {
 		// We have a continued line
-		contInd := cont[0][0]
-		stop := linePattern.FindStringIndex(string(data[contInd:]))
-		if stop != nil {
-			stopInd := contInd + stop[0]
-			end := cleanPattern.FindStringIndex(string(data[stopInd:]))
-			if end != nil {
-				logInd := stopInd + end[1]
-				if logInd + 1 > len(data) {
-					return len(data), data, nil
-				}
-				tok := data[:logInd]
-				adv := logInd + 1
-				return adv, tok, nil
+		fullMatch := fullContPattern.FindIndex(data)
+		if fullMatch != nil {
+			logInd := fullMatch[1]
+			if logInd + 1 > len(data) {
+				return len(data), data, nil
 			}
+			tok := data[:logInd]
+			adv := logInd + 1
+			return adv, tok, nil
 		}
 		return 0, nil, nil
 	}
 
-	cleanLine := cleanPattern.FindStringIndex(string(data))
-	if cleanLine != nil {
+	if i := bytes.IndexByte(data, '\n'); i >= 0 {
 		// We have a full newline-terminated line.
-		cleanInd := cleanLine[0]
-		return cleanInd + 1, data[0:cleanInd], nil
+		return i + 1, data[0:i], nil
 	}
 
 	if atEOF {
