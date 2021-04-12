@@ -1,8 +1,9 @@
 package main
 
 import (
-	"bytes"
 	"bufio"
+	"bytes"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -57,7 +58,7 @@ func logSplit(data []byte, atEOF bool) (advance int, token []byte, err error) {
 		fullMatch := fullContPattern.FindIndex(data)
 		if fullMatch != nil {
 			logInd := fullMatch[1]
-			if logInd + 1 > len(data) {
+			if logInd+1 > len(data) {
 				return len(data), data, nil
 			}
 			tok := data[:logInd]
@@ -112,14 +113,22 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	scanner := bufio.NewScanner(subcmdErr)
-	scanner.Split(logSplit)
 
 	if err := subcmd.Start(); err != nil {
 		log.Fatal(err)
 	}
 	subcmdPid = subcmd.Process.Pid
 
+	go handle_logs(subcmdErr, emitterName, emitter)
+
+	if err := subcmd.Wait(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func handle_logs(reader io.Reader, emitterName string, emitter logging.Emitter) {
+	scanner := bufio.NewScanner(reader)
+	scanner.Split(logSplit)
 	for scanner.Scan() {
 		msg := scanner.Bytes()
 		err := scanner.Err()
