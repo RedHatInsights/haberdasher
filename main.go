@@ -2,22 +2,17 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"io"
 	"log"
 	"os"
 	"os/exec"
 	"os/signal"
-	"regexp"
 	"syscall"
 
 	_ "github.com/RedHatInsights/haberdasher/emitters"
 	"github.com/RedHatInsights/haberdasher/logging"
 	reaper "github.com/ramr/go-reaper"
 )
-
-var /* const */ contPattern = regexp.MustCompile(`\n\s`)
-var /* const */ fullContPattern = regexp.MustCompile(`^\S(.*\n\s)+.*\n\S.*\n`)
 
 // If running as PID1, we need to actively catch and handle any shutdown signals
 // So with this handler, we pass the signal along to the subprocess we spawned
@@ -45,39 +40,6 @@ func signalHandler(pid *int, emitter logging.Emitter, signalChan chan os.Signal)
 		}
 		os.Exit(0)
 	}
-}
-
-func logSplit(data []byte, atEOF bool) (advance int, token []byte, err error) {
-	if atEOF && len(data) == 0 {
-		return 0, nil, nil
-	}
-
-	cont := contPattern.Find(data)
-	if cont != nil {
-		// We have a continued line
-		fullMatch := fullContPattern.FindIndex(data)
-		if fullMatch != nil {
-			logInd := fullMatch[1]
-			if logInd+1 > len(data) {
-				return len(data), data, nil
-			}
-			tok := data[:logInd]
-			adv := logInd + 1
-			return adv, tok, nil
-		}
-		return 0, nil, nil
-	}
-
-	if i := bytes.IndexByte(data, '\n'); i >= 0 {
-		// We have a full newline-terminated line.
-		return i + 1, data[0:i], nil
-	}
-
-	if atEOF {
-		return len(data), data, nil
-	}
-
-	return 0, nil, nil
 }
 
 func main() {
@@ -128,7 +90,6 @@ func main() {
 
 func handle_logs(reader io.Reader, emitterName string, emitter logging.Emitter) {
 	scanner := bufio.NewScanner(reader)
-	scanner.Split(logSplit)
 	for scanner.Scan() {
 		msg := scanner.Bytes()
 		err := scanner.Err()
