@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/RedHatInsights/haberdasher/logging"
+	clowder "github.com/redhatinsights/app-common-go/pkg/api/v1"
 	"github.com/segmentio/kafka-go"
 )
 
@@ -24,18 +25,27 @@ func init() {
 // If the Kafka emitter is activated, create a new Producer and spawn a
 // goroutine to note any errors.
 func (e kafkaEmitter) Setup() {
-	bootstrapServers, exists := os.LookupEnv("HABERDASHER_KAFKA_BOOTSTRAP")
-	if !exists {
-		log.Fatal("To use Haberdasher with Kafka, HABERDASHER_KAFKA_BOOTSTRAP must be set to your bootstrap servers")
-	}
+	bootstrapServers := []string{}
+	var topic string
 
-	topic, exists = os.LookupEnv("HABERDASHER_KAFKA_TOPIC")
-	if !exists {
-		log.Fatal("To use Haberdasher with Kafka, HABERDASHER_KAFKA_TOPIC must be set to your logging topic")
+	if clowder.IsClowderEnabled() && clowder.LoadedConfig.Logging.Kafka != nil {
+		bootstrapServers = clowder.KafkaServers
+		topic = clowder.LoadedConfig.Logging.Kafka.TopicName
+	} else {
+		bootstrapServersString, exists := os.LookupEnv("HABERDASHER_KAFKA_BOOTSTRAP")
+		if !exists {
+			log.Fatal("To use Haberdasher with Kafka, HABERDASHER_KAFKA_BOOTSTRAP must be set to your bootstrap servers")
+		}
+		bootstrapServers = strings.Split(bootstrapServersString, ",")
+
+		topic, exists = os.LookupEnv("HABERDASHER_KAFKA_TOPIC")
+		if !exists {
+			log.Fatal("To use Haberdasher with Kafka, HABERDASHER_KAFKA_TOPIC must be set to your logging topic")
+		}
 	}
 
 	producer = kafka.NewWriter(kafka.WriterConfig{
-		Brokers:  strings.Split(bootstrapServers, ","),
+		Brokers:  bootstrapServers,
 		Topic:    topic,
 		Balancer: &kafka.LeastBytes{},
 	})

@@ -12,6 +12,7 @@ import (
 	_ "github.com/RedHatInsights/haberdasher/emitters"
 	"github.com/RedHatInsights/haberdasher/logging"
 	reaper "github.com/ramr/go-reaper"
+	clowder "github.com/redhatinsights/app-common-go/pkg/api/v1"
 )
 
 // If running as PID1, we need to actively catch and handle any shutdown signals
@@ -45,10 +46,16 @@ func signalHandler(pid *int, emitter logging.Emitter, signalChan chan os.Signal)
 func main() {
 	log.Println("Initializing haberdasher.")
 
-	// Generate the emitter first so we can hand it over to the signal handler
-	emitterName, exists := os.LookupEnv("HABERDASHER_EMITTER")
-	if !exists {
-		emitterName = "stderr"
+	var emitterName string
+	if clowder.IsClowderEnabled() && clowder.LoadedConfig.Logging.Kafka != nil {
+		emitterName = "kafka"
+	} else {
+		var exists bool
+		// Generate the emitter first so we can hand it over to the signal handler
+		emitterName, exists = os.LookupEnv("HABERDASHER_EMITTER")
+		if !exists {
+			emitterName = "stderr"
+		}
 	}
 	log.Println("Configured emitter:", emitterName)
 	emitter := logging.Emitters[emitterName]
